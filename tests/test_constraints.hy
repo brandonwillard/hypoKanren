@@ -8,11 +8,14 @@
 
 
 (defn test-constraints []
-  (make-constraint-system [=/= absento symbolo not-pairo]
+  (make-constraint-system [=/= absento symbolo
+                           not-pairo numerico booleano]
                           valid-=/=
                           valid-absento
                           valid-symbolo
-                          valid-not-pairo)
+                          valid-not-pairo
+                          valid-numerico
+                          valid-booleano)
 
   (assert (= (. (next (call/empty-state
                               (call/fresh
@@ -76,6 +79,24 @@
                            (== x (cons 1 2))
                            (not-pairo x))))))
              []))
+
+  (assert (not (empty? (list
+                         (call/empty-state
+                           (call/fresh
+                             (fn [q] (numerico 1))))))))
+  (assert (empty? (list
+                    (call/empty-state
+                      (call/fresh
+                        (fn [q] (numerico True)))))))
+  (assert (not (empty?
+                 (list
+                   (call/empty-state
+                     (call/fresh
+                       (fn [q] (booleano True))))))))
+  (assert (empty? (list
+                    (call/empty-state
+                      (call/fresh
+                        (fn [q] (booleano 1)))))))
 
   (let [res
         (list (call/empty-state
