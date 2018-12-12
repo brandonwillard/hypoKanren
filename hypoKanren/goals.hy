@@ -74,22 +74,6 @@ TODO: This could use some form of t.c.o.
                      ;; ~(fresh (rest lvars) body)
                      (fresh ~(list (rest lvars)) ~@body)))))
 
-(defn reify-s [v s]
-  "Reify a substitution.
-
-TODO: This could use some form of t.c.o.
-"
-  (let [v (walk v s)]
-    (cond
-      [(var? v) (let [n (.format "_.{}" (len s))]
-                  (if (instance? Mapping s)
-                      (.set s v n)
-                      (cons (cons v n) s)))]
-      [(cons? v)
-       (reify-s (cdr v)
-                (reify-s (car v) s))]
-      [True s])))
-
 (defn walk* [v s]
   "Partially reify a form. (replace lvars with their walked values in a form.
 
@@ -175,6 +159,8 @@ S*: iterable
 
 ;; A goal that's always successful.
 (setv s# (== True True))
+(setv succeed s#)
 
-;; A goal that's always unsuccessful.
+;; A goal that always fails.
 (setv u# (== False True))
+(setv fail u#)

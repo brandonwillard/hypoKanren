@@ -67,7 +67,7 @@ be nested in `cons`es, e.g.
 ;; TODO: Convert to `empty-to-none`
 (defn -none-to-empty-or-list [x]
   (cond [(none? x) (list)]
-        [(non-str-seq? x) (list x)]
+        #_[(non-str-seq? x) (list x)]
         [True x]))
 
 ;; A synonym for ConsPair
@@ -95,7 +95,8 @@ be nested in `cons`es, e.g.
      (raise (TypeError (.format "Cannot perform cdr on {}" (type z))))]))
 
 (defn cons? [a]
-  (if (or (and (instance? list a)
+  (if (or (and #_(instance? list a)
+               (non-str-seq? a)
                (not (empty? a)))
           (instance? ConsPair a))
       True

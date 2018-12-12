@@ -184,10 +184,7 @@ out: True or False
     [True True]))
 
 (defn valid-absento [S]
-  "Constraint predicate for `absento`.
-
-Expected rands for this operator consist of two forms.
-"
+  "Constraint predicate for `absento`."
   (cond
     [(none? S) False]
     [(in 'absento S.c-store)
@@ -198,18 +195,13 @@ Expected rands for this operator consist of two forms.
     [True True]))
 
 (defn valid-symbolo [S]
-  "Constraint predicate for `symbolo`.
-
-Expected rands for this operator consist of a single form.
-"
+  "Constraint predicate for `symbolo`. "
   (cond
     [(none? S) False]
     [(in 'symbolo S.c-store)
      (not (ormap
             ;; Is this just `project`?
             (fn [pr]
-              ;; XXX: Might want to tell `walk` where to look in the state object.
-              ;; Also `y` is a `cons` of constraint rands/arguments/bindings, so keep that in mind.
               (setv t (walk (car pr) S.subs))
               (not (or (symbol? t) (var? t))))
             (.get S.c-store 'symbolo)))]
@@ -218,7 +210,7 @@ Expected rands for this operator consist of a single form.
 (defn valid-numerico [S]
   "Constraint predicate for `numbero`.
 
-Expected rands for this operator consist of a single form.
+Booleans are *not* considered numbers--in this case.
 "
   (cond
     [(none? S) False]
@@ -226,18 +218,31 @@ Expected rands for this operator consist of a single form.
      (not (ormap
             ;; Is this just `project`?
             (fn [pr]
-              ;; XXX: Might want to tell `walk` where to look in the state object.
-              ;; Also `y` is a `cons` of constraint rands/arguments/bindings, so keep that in mind.
               (setv t (walk (car pr) S.subs))
-              (not (or (numeric? t) (var? t))))
+              (not (or (and (numeric? t)
+                            (not (instance? bool t)))
+                       (var? t))))
             (.get S.c-store 'numerico)))]
     [True True]))
 
-(defn valid-not-pairo [S]
-  "Constraint predicate for `not-pairo` (i.e. not a `cons` pair).
 
-Expected rands for this operator consist of a single form.
-"
+(defn valid-booleano [S]
+  "Constraint predicate for `booleano`."
+  (cond
+    [(none? S) False]
+    [(in 'booleano S.c-store)
+     (not (ormap
+            ;; Is this just `project`?
+            (fn [pr]
+              (setv t (walk (car pr) S.subs))
+              (not (or (and (numeric? t)
+                            (instance? bool t))
+                       (var? t))))
+            (.get S.c-store 'booleano)))]
+    [True True]))
+
+(defn valid-not-pairo [S]
+  "Constraint predicate for `not-pairo` (i.e. not a `cons` pair)."
   (cond
     [(none? S) False]
     [(in 'not-pairo S.c-store)

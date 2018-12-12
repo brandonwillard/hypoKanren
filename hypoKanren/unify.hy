@@ -205,6 +205,7 @@ out: `None` if terms cannot be unified; otherwise, `s` or, when `u` is an
       [True None])))
 
 (defn same-s? [u v s]
+  "Do the substitutions `s` change after unifying `u` and `v` under `s`?"
   (= (unify u v s) s))
 
 #@((dispatch Mapping)
@@ -245,3 +246,24 @@ TODO: Tail-call optimization.
            (and (cons? v)
                 (or (mem? u (car v) s)
                     (mem? u (cdr v) s)))))))
+
+;; TODO: Define a reify taking state objects.  It should pass through all
+;; constraints in `S.c-store` and display a dict of constraint reifications for
+;; each reified lvar.
+;; E.g. `[_.0 {"=/=" [_.0 a] "absento" []}]`
+
+(defn reify-s [v s]
+  "Reify a substitution.
+
+TODO: This could use some form of t.c.o.
+"
+  (let [v (walk v s)]
+    (cond
+      [(var? v) (let [n (.format "_.{}" (len s))]
+                  (if (instance? Mapping s)
+                      (.set s v n)
+                      (cons (cons v n) s)))]
+      [(cons? v)
+       (reify-s (cdr v)
+                (reify-s (car v) s))]
+      [True s])))
