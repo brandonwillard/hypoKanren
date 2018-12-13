@@ -52,14 +52,12 @@
 
   (defn sixes [x]
     (disj (== x 6)
-          (λₘ [S]
-              (λₛ []
-                  ((sixes x) S)))))
+          (Zzz (sizes x))))
 
   (setv fives-and-sixes
         (call/fresh (fn [x] (disj (fives x) (sixes x)))))
 
-  (setv empty-state (make-state (pmap) 0))
+  (setv empty-state (make-state))
 
   ;; XXX: Won't work; maximum recursion depth.
   (assert
@@ -70,20 +68,6 @@
         True)
       (else
         False)))
-
-  (defn fives [x]
-    (disj (== x 5) (λₘ [S] (λₛ [] ((fives x) S)))))
-
-  (setv res-stream (fives-and-sixes empty-state))
-  (assert (= (next res-stream)
-             (make-state (pmap {(var 0) 5}) 1)))
-  (assert (= (next res-stream)
-             (make-state (pmap {(var 0) 6}) 1)))
-  (assert (= (next res-stream)
-             (make-state (pmap {(var 0) 5}) 1)))
-
-  ;; Now, recreate the original version, but this time use inverse-η-delays.
-  (del fives)
 
   (defn fives [x]
     (disj (== x 5) (Zzz (fives x))))

@@ -9,21 +9,19 @@ Streams are simply Python iterators and/or generator functions.
 (require [hy.contrib.walk [let]])
 
 
-;; TODO: Should this be a macro, or function yielding `[]`, like `unit`?
-;; The object representing an empty Kanren state stream.
-(setv mzero (iter []))
-
 (defmacro λₛ [args body]
-  "The delayed/immature stream creation macro.  Use this to construct a
-delayed/immature stream from an existing stream.
+  "A delayed/immature stream creation macro.
+
+Use this to construct a delayed/immature stream from an existing stream.
 
 In the base case, `args` are immaterial and the body must evaluate to a state
 stream.
-
-This is a 'Pythonic' version that simply creates a generator function that
-yields the body.
 "
-  `((fn ~args (yield-from ~body))))
+  `(iter ~body))
+
+;; TODO: Should this be a macro, or function yielding `[]`, like `unit`?
+;; The object representing an empty Kanren state stream.
+(setv mzero (λₛ [] []))
 
 (defn unit [S]
   "Initialize a state stream with a state instance."

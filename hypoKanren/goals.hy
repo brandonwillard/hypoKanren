@@ -16,7 +16,7 @@
 
 The actual delay is implemented by λₛ, which simply uses Python's `yield-from`.
 "
-  `(λₘ [S] (λₛ [] (~g S))))
+  `(λₘ [S] (yield-from (~g S))))
 
 (defn pull [$]
   "Extract and evaluate a single value from a lazy state stream."
@@ -40,8 +40,9 @@ which returns an iterator (and not the list we desire).
 TODO: This could use some form of t.c.o.
 "
   (if (empty? g-rest)
-      (Zzz g0)
-      (conj (Zzz g0) (conj+ #* g-rest))))
+      #_(Zzz g0)
+      g0
+      (conj g0 #_(Zzz g0) (conj+ #* g-rest))))
 
 (defn disj+ [g0 &rest g-rest]
   "Disjunction of goal streams using inverse-η-delays.
@@ -49,8 +50,8 @@ TODO: This could use some form of t.c.o.
 TODO: This could use some form of t.c.o.
 "
   (if (empty? g-rest)
-      (Zzz g0)
-      (disj (Zzz g0) (disj+ #* g-rest))))
+      g0 #_(Zzz g0)
+      (disj g0 #_(Zzz g0) (disj+ #* g-rest))))
 
 (defmacro conde [g-clauses]
   "A goal mirroring `cond`"
