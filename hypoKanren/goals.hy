@@ -53,7 +53,7 @@ TODO: This could use some form of t.c.o.
       g0 #_(Zzz g0)
       (disj g0 #_(Zzz g0) (disj+ #* g-rest))))
 
-(defmacro conde [g-clauses]
+(defmacro conde [&rest g-clauses]
   "A goal mirroring `cond`"
   `(disj+ ~@(lfor g g-clauses `(conj+ ~@g))))
 

@@ -61,8 +61,8 @@
 (defn test-conde []
   ;; TODO: Test alternating results from an infinite stream?
   (assert (= (run 4 [r s] (conde
-                            [[s# (== r 1) (== s 2)]
-                             [s# (== r 3) (== s 4)]]))
+                            [s# (== r 1) (== s 2)]
+                            [s# (== r 3) (== s 4)]))
              [[1 2] [3 4]])))
 
 
