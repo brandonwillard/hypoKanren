@@ -1,4 +1,3 @@
-(import [multipledispatch [dispatch]])
 (import [collections [MutableMapping Mapping Sized]])
 (import [pyrsistent [PMap pmap]])
 (import [hypoKanren.cons [cons cons? car cdr]])

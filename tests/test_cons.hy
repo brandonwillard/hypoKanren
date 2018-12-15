@@ -1,3 +1,4 @@
+(import [collections [OrderedDict]])
 (import [hypoKanren.cons [*]])
 
 (require [hy.contrib.walk [let]])
@@ -39,6 +40,10 @@
                 ['a 'b 'c])
   (assert-equal (cons 'a (, 'b 'c))
                 (, 'a 'b 'c))
+  (assert-equal (type (cons (, 'a 1) {'b 2}))
+                ConsPair)
+  (assert-equal (cons (, 'a 1) (OrderedDict {'b 2}))
+                (OrderedDict {'a 1 'b 2}))
 
   (assert-equal (cons '(a b) 'c)
                 (ConsPair '(a b) 'c))
@@ -109,4 +114,9 @@
   (assert-equal (cdr (cons 'a (, 'b)))
                 (, 'b))
   (assert-equal (cdr (cons 'a ['b]))
-                ['b]))
+                ['b])
+
+  (assert-equal (cons 'a (cons 'b 'c))
+                (cons ['a 'b] 'c))
+  (assert-equal (cons (cons 'a 'b) (cons 'c 'd))
+                (cons [(cons 'a 'b) 'c] 'd)))

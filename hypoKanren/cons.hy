@@ -1,7 +1,23 @@
+(import [collections [OrderedDict]])
 (import [collections.abc [Sequence Iterator Sized ByteString]])
+
+(import [multipledispatch [dispatch]])
 
 (require [hy.contrib.walk [let]])
 
+
+(defn non-str-seq? [x]
+  (and (instance? Sequence x)
+       (not (instance? (, str ByteString) x))))
+
+(defn none-to-list [x]
+  (cond [(none? x) (list)]
+        [True x]))
+
+#@((dispatch object object)
+   (defn cons-merge [car-part cdr-part]
+     "Merge a generic car and cdr."
+     None))
 
 (defclass ConsPair [object]
   "An object representing cons pairs.
@@ -18,34 +34,26 @@ The arguments to `ConsPair` can be a car & cdr pair, or a sequence of objects to
 be nested in `cons`es, e.g.
 
     (ConsPair car-1 car-2 car-3 cdr) == (ConsPair car-1 (cons car-2 (cons car-3 cdr)))
+
 "
   (defn --new-- [cls &rest parts]
     (if (> (len parts) 2)
         (reduce (fn [x y] (ConsPair y x))
                 (reversed parts))
         ;; Handle basic car, cdr case.
-        (do (setv car-part (-none-to-empty-or-list
+        (do (setv car-part (none-to-list
                              (first parts)))
-            (setv cdr-part (-none-to-empty-or-list
+            (setv cdr-part (none-to-list
                              (if (and (instance? Sized parts)
                                       (> (len parts) 1))
                                  (last parts)
                                  None)))
-            (cond
-              [(instance? (, list tuple) cdr-part)
-               ;; Try to preserve the exact type
-               ;; (e.g. in case it's actually a HyList).
-               (+ ((type cdr-part) [car-part]) cdr-part)]
-              ;; TODO: Support `OrderedDict` and some form of `set` types.
-              [(and (instance? Iterator car-part)
-                    (instance? Iterator cdr-part))
-               (chain car-part cdr-part)]
-              [True
-               (do
-                 (setv instance (.--new-- (super ConsPair cls) cls))
-                 (setv instance.car car-part)
-                 (setv instance.cdr cdr-part)
-                 instance)]))))
+            (or (cons-merge car-part cdr-part)
+                (do
+                  (setv instance (.--new-- (super ConsPair cls) cls))
+                  (setv instance.car car-part)
+                  (setv instance.cdr cdr-part)
+                  instance)))))
   (defn --hash-- [self]
     (hash [self.car, self.cdr]))
   (defn --eq-- [self other]
@@ -60,44 +68,74 @@ be nested in `cons`es, e.g.
   (defn --str-- [self]
     (.format "({} . {})" self.car self.cdr)))
 
-(defn non-str-seq? [x]
-  (and (instance? Sequence x)
-       (not (instance? (, str ByteString) x))))
 
-;; TODO: Convert to `empty-to-none`
-(defn -none-to-empty-or-list [x]
-  (cond [(none? x) (list)]
-        #_[(non-str-seq? x) (list x)]
-        [True x]))
-
-;; A synonym for ConsPair
+;; A synonym for `ConsPair` and the operation of `cons`-ing.
 (setv cons ConsPair)
 
-(defn car [z]
-  (cond
-    [(hasattr z "car") z.car]
-    [(or (instance? Iterator z)
-         (non-str-seq? z)) (first z)]
-    [(none? z) None]
-    [True
-     (raise (TypeError (.format "Cannot perform car on {}" (type z))))]))
 
-(defn cdr [z]
-  (cond
-    [(hasattr z "cdr") z.cdr]
-    [(instance? Iterator z) (rest z)]
-    [(non-str-seq? z)
-     ;; Try to preserve the exact type of collection
-     ;; (e.g. in case it's actually a HyList).
-     ((type z) (list (rest z)))]
-    [(none? z) None]
-    [True
-     (raise (TypeError (.format "Cannot perform cdr on {}" (type z))))]))
+#@((dispatch object ConsPair)
+   (defn cons-merge [car-part cdr-part]
+     "Merge a cars and cdrs that are `ConsPair`s."
+     (ConsPair [car-part (car cdr-part)] (cdr cdr-part))))
+
+#@((dispatch Iterator Iterator)
+   (defn cons-merge [car-part cdr-part]
+     "Merge a cars and cdrs that are `Iterators`."
+     (chain car-part cdr-part)))
+
+#@((dispatch object (, list tuple))
+   (defn cons-merge [car-part cdr-part]
+     "Merge a car with a list or tuple cdr."
+     (+ ((type cdr-part) [car-part]) cdr-part)))
+
+;; TODO: We could broaden this to accept `ConsPair`, so that, in effect, alists
+;; are always Python dicts.
+#@((dispatch (, list tuple) OrderedDict)
+   (defn cons-merge [car-part cdr-part]
+     "Merge a list/tuple car with a dict cdr."
+     (.update cdr-part [car-part])
+     (.move-to-end cdr-part (first car-part) :last False)
+     cdr-part))
+
+#@((dispatch (type None))
+   (defn car [z] None))
+
+#@((dispatch ConsPair)
+   (defn car [z] z.car))
+
+#@((dispatch (, list tuple Iterator))
+   (defn car [z]
+     (first z)))
+
+#@((dispatch OrderedDict)
+   (defn car [z]
+     (first (.items z))))
+
+#@((dispatch (type None))
+   (defn cdr [z] None))
+
+#@((dispatch ConsPair)
+   (defn cdr [z] z.cdr))
+
+#@((dispatch Iterator)
+   (defn cdr [z] (rest z)))
+
+#@((dispatch (, list tuple))
+   (defn cdr [z]
+     ((type z) (list (rest z)))))
+
+#@((dispatch OrderedDict)
+   (defn cdr [z]
+     (cdr (.items z))))
 
 (defn cons? [a]
-  (if (or (and #_(instance? list a)
-               (non-str-seq? a)
-               (not (empty? a)))
-          (instance? ConsPair a))
+  "Determine if an object is the product of a `cons`.
+
+This is automatically determined by the accepted `cdr` types for each `cons-merge`
+implementation, since any such implementation implies that `cons` can construct
+that type.
+"
+  (if (and (any (gfor (, c d) (.keys (. cons-merge funcs)) (instance? d a)))
+           (or (not (instance? Sized a)) (empty? a)))
       True
       False))
