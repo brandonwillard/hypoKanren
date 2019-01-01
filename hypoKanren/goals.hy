@@ -75,6 +75,12 @@ TODO: This could use some form of t.c.o.
                      ;; ~(fresh (rest lvars) body)
                      (fresh ~(list (rest lvars)) ~@body)))))
 
+(defmacro project [vars &rest exprs]
+  `(λₘ [S]
+       (let [~@(chain.from-iterable
+                 (lfor v vars [v `(walk ~v S.subs)]))]
+         ((conj+ ~@exprs) S))))
+
 (defn walk* [v s]
   "Partially reify a form. (replace lvars with their walked values in a form.
 
