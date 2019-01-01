@@ -39,7 +39,7 @@
                                     (absento 'b [1 (cons 'c x)]))))))
                       c-store)
                    "absento")
-             [['b 1 (cons 'c (var 0))]]))
+             [(, 'b [1 (cons 'c (var 0))])]))
 
   (assert (= (list (call/empty-state
                      (call/fresh
@@ -56,7 +56,7 @@
                                     (symbolo x))))))
                       c-store)
                    "symbolo")
-             [[(var 0)]]))
+             [(, (var 0))]))
 
   (assert (= (list (call/empty-state
                      (call/fresh
@@ -115,11 +115,11 @@
     (assert (= res-state.subs.data
                (pmap {(var 0) 'a})))
     (assert (= (get res-state.c-store "=/=")
-               [(cons 'c (var 0))
-                (cons (var 0) 'b)]))
+               [(, 'c (var 0))
+                (, (var 0) 'b)]))
     (assert (= (get res-state.c-store "absento")
-               [['b (var 0)]]))
+               [(, 'b [(var 0)])]))
     (assert (= (get res-state.c-store "symbolo")
-               [[(var 0)]]))
+               [(, (var 0))]))
     (assert (= (get res-state.c-store "not-pairo")
-               [[(var 0)]]))))
+               [(, (var 0))]))))

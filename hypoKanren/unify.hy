@@ -128,20 +128,20 @@ out: `s` with new pair/substitution.
    (defn walk [u s]
      "Get the substitution value for a given logic variable, if any.
 
-This function handles alists (i.e. `list`s with `cons` pairs) and `Mapping`s.
+This function handles `Mapping`s.
 
 TODO: Tail-call optimization.
 
 Examples
 ========
   ;; No existing substitutions.
-  => (walk (var 1) [])
+  => (walk (var 1) {})
   <1>
   ;; Existing substitutions, but not for `u`.
-  => (walk (var 1) [(cons (var 0) 'q)])
+  => (walk (var 1) {(var 0) 'q})
   <1>
   ;; Existing substitution for `u`.
-  => (walk (var 1) [(cons (var 1) 'q)])
+  => (walk (var 1) {(var 1) 'q})
   HySymbol('q')
 
 Parameters
@@ -166,8 +166,9 @@ out: symbol
    (defn walk [u s]
      (.walk s u)))
 
-(defn unify [u v s]
-  "Unify terms given a set of existing substitutions.
+#@((dispatch object object object)
+   (defn unify [u v s]
+     "Unify terms given a set of existing substitutions.
 
 TODO: Consider using dispatch for input-type overloading.
 TODO: Make this amenable to tail-call optimization.
@@ -186,23 +187,25 @@ Results
 out: `None` if terms cannot be unified; otherwise, `s` or, when `u` is an
 `lvar`, `s` plus the pair `u` and `v`.
 "
-  (let [u (walk u s)
-        v (walk v s)]
-    (cond
-      [(and (var? u) (var? v) (= u v)) s]
-      [(var? u) (ext-s u v s)]
-      [(var? v) (ext-s v u s)]
-      ;; TODO: This currently won't unify some standard Python/Hy objects like
-      ;; tuples, dicts, sets.
-      [(and (cons? u) (cons? v))
-       ;; TODO: This branch point needs to change if we want to use tail-call
-       ;; optimization.  If `defnr`'s approach didn't use the same global
-       ;; variables for every call to the `defnr` function, we could have some
-       ;; form of (partial?) t.c.o.
-       (let [s (unify (car u) (car v) s)]
-         (and s (unify (cdr u) (cdr v) s)))]
-      [(= u v) s]
-      [True None])))
+     (let [u (walk u s)
+           v (walk v s)]
+       (cond
+         [(and (var? u) (var? v) (= u v)) s]
+         [(var? u) (ext-s u v s)]
+         [(var? v) (ext-s v u s)]
+         ;; TODO: This currently won't unify some standard Python/Hy objects like
+         ;; tuples, dicts, sets.
+         [(and (cons? u) (cons? v))
+          ;; TODO: This branch point needs to change if we want to use tail-call
+          ;; optimization.  If `defnr`'s approach didn't use the same global
+          ;; variables for every call to the `defnr` function, we could have some
+          ;; form of (partial?) t.c.o.
+          (let [s (unify (car u) (car v) s)]
+            (if (none? s)
+                None
+                (unify (cdr u) (cdr v) s)))]
+         [(= u v) s]
+         [True None]))))
 
 (defn same-s? [u v s]
   "Do the substitutions `s` change after unifying `u` and `v` under `s`?"

@@ -1,4 +1,6 @@
+(import [collections [OrderedDict]])
 (import [pyrsistent [pmap]])
+(import [hy.models [HyList HyExpression]])
 (import [hypoKanren.core [var make-state]])
 (import [hypoKanren.unify [*]])
 
@@ -34,6 +36,35 @@
 (defn test-unify []
   (assert (= (unify (var 0) 5 (pmap))
              (pmap {(var 0) 5})))
+
+  (assert (= (unify [1 (var 0)] [1 5] (pmap))
+             (pmap {(var 0) 5})))
+  ;; Unify an improper list
+  (assert (= (unify (cons 1 (var 0)) [1 5] (pmap))
+             (pmap {(var 0) [5]})))
+  (assert (= (unify (cons [1 (var 0)] (var 1)) [[1 2] 5] (pmap))
+             (pmap {(var 0) 2
+                    (var 1) [5]})))
+  ;; Unify within a tuple
+  (assert (= (unify (, 1 (var 0)) (, 1 5) (pmap))
+             (pmap {(var 0) 5})))
+  ;; Unify an improper tuple
+  (assert (= (unify (cons 1 (var 0)) (, 1 5) (pmap))
+             (pmap {(var 0) (, 5)})))
+  ;; Preserve other list-type forms
+  (assert (= (unify (cons 1 (var 0)) `[1 5] (pmap))
+             (pmap {(var 0) `[5]})))
+  (assert (= (unify (cons 1 (var 0)) `(1 5) (pmap))
+             (pmap {(var 0) `(5)})))
+  ;; Unify within an ordered dict
+  (assert (= (unify (OrderedDict {1 (var 0)})
+                    (OrderedDict {1 5}) (pmap))
+             (pmap {(var 0) 5})))
+  ;; Unify an improper ordered dict
+  (assert (= (unify (cons (, 1 2) (var 0)) (OrderedDict {1 2 3 4})
+                    (pmap))
+             (pmap {(var 0) [(, 3 4)]})))
+
   (assert (none? (unify 5 7 (LVarDAG))))
   (assert (none? (unify (var 0) 2
                         (LVarDAG (pmap {(var 0) 5})))))

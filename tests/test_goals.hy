@@ -65,7 +65,6 @@
                             [s# (== r 3) (== s 4)]))
              [[1 2] [3 4]])))
 
-
 (defn test-run* []
   (assert (= (run* [q] (== 1 1))
              ;; TODO: Don't rely on a fixed string representation.

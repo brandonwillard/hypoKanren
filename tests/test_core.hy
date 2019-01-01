@@ -22,7 +22,7 @@
 (defn test-ext-S []
   (setv test-state (make-state (pmap [(, 1 2)])
                                0
-                               {'=/= [(cons 8 9)]}))
+                               {'=/= [(, 8 9)]}))
   ;; Add terms to the `==` "constraint" (just unify, really), make sure they're
   ;; in the result--along with the existing constraints.
 
@@ -31,21 +31,14 @@
   (assert (= (ext-S test-state '== [(var 0) 'b])
              (make-state (pmap [(, (var 0) 'b) (, 1 2)])
                          0
-                         (pmap {'=/= [(cons 8 9)]}))))
+                         (pmap {'=/= [(, 8 9)]}))))
 
   (setv test-state-2 (make-state (pmap [(, 1 2)])
                                  0
-                                 (pmap {'=/= [(cons 8 9)]
+                                 (pmap {'=/= [(, 8 9)]
                                         'absento []})))
-  (assert (= (ext-S test-state-2 'absento ['a 'b])
+  (assert (= (ext-S test-state-2 'absento (, 'a 'b))
              (make-state (pmap [(, 1 2)])
                          0
-                         {'=/= [(cons 8 9)]
-                          'absento [(cons 'a 'b)]})))
-
-  ;; TODO: Need to fix `pyrsisent` first.
-  #_(assert (= (ext-S test-state-2 'absento ['a 'b])
-             (make-state (pmap {'== (pmap {1 2})
-                                '=/= (pmap {8 9})
-                                'absento (pmap {'a 'b})})
-                         0))))
+                         (pmap {'=/= [(, 8 9)]
+                                'absento [(, 'a 'b)]})))))

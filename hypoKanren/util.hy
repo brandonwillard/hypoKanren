@@ -1,3 +1,4 @@
+(import operator)
 (import [collections [MutableMapping Mapping Sized]])
 (import [pyrsistent [PMap pmap]])
 (import [hypoKanren.cons [cons cons? car cdr]])
@@ -9,13 +10,11 @@
 (defn list? [x]
   (instance? list x))
 
-(defn sized? [x]
-  "Predicate for an object implementing the interface `Sized` (i.e.
-a collection with a known, finite size).
+(defn empty*? [x]
+  "Predicate for an empty collection and/or iterable.
 
-The built-in `coll?` is mis-named; it checks for `Iterable` not `Collection`.
-"
-  (instance? Sized x))
+Works slightly better than the builtin `empty?`"
+  (= (operator.length-hint x 1) 0))
 
 (defn mapping? [x]
   "Predicate for an object implementing the interface `Mapping` (e.g.
@@ -28,7 +27,7 @@ a dict).
 to be 'null'.
 "
   (or (none? x)
-      (and (sized? x) (empty? x))
+      (= (operator.length-hint x 1) 0)
       (= x False)))
 
 (defmacro get-macro [x]

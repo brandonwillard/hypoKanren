@@ -165,3 +165,15 @@ S*: iterable
 ;; A goal that always fails.
 (setv u# (== False True))
 (setv fail u#)
+
+(defn lapplyo [func l-in l-out]
+  "Apply a binary relation to corresponding elements between two iterables."
+  (conde
+    [(fresh [lcar lcdr
+             lout-car lout-cdr]
+            (== l-in (cons lcar lcdr))
+            (func lcar lout-car)
+            (lapplyo func lcdr lout-cdr)
+            (== l-out (cons lout-car lout-cdr)))]
+    [(== l-in [])
+     (== l-out l-in)]))

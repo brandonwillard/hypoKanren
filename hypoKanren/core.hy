@@ -20,10 +20,10 @@ their rands--including `==`), track `==` substitutions in `subs` and constraint
 rands in `c-store`, etc.)
 "
   (setv __slots__ ["subs" "lvar_count" "c_store" "domains"])
-  (defn --init-- [self &optional [subs (LVarDAG)] [lvar-count 0] [c-store (pmap)] [domains None]]
-    (setv self.subs subs
+  (defn --init-- [self &optional [subs None] [lvar-count 0] [c-store None] [domains None]]
+    (setv self.subs (if (none? subs) (LVarDAG) subs)
           self.lvar-count lvar-count
-          self.c-store c-store
+          self.c-store (if (none? c-store) (pmap) c-store)
           self.domains domains))
   (defn new-subs [self s]
     "Create a copy of the current state with new `subs`."
@@ -81,18 +81,13 @@ c-rands: `cons` pair
               s-new (unify #* c-rands subs)]
           (unless (none? s-new)
             (S.new-subs s-new)))]
-       [True ; (in c-key S.c-store)
+       [True
         (do
-          (let [old-s (.get S.c-store c-key [])
-                key-args (cons #* c-rands)]
+          (let [old-s (.get S.c-store c-key [])]
             (S.new-c-store
               (ext-s c-key
-                     (cons key-args old-s)
-                     S.c-store))))]
-       #_[True
-        (raise (ValueError (.format (+ "Could not find store for key {}"
-                                       " in state {}.")
-                                    c-key S)))])))
+                     (cons c-rands old-s)
+                     S.c-store))))])))
 
 (defn state? [x]
   "Predicate for a Kanren state object."
