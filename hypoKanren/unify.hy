@@ -155,11 +155,13 @@ Results
 =======
 out: symbol
 "
-     (if (var? u)
-         (let [val (.get s u None)]
-           (if (null? val)
-               u
-               (walk val s)))
+     (if (and (var? u) (in u s))
+         (let [val (.get s u)]
+           (walk val s)
+           ;; (if (null? val)
+           ;;     u
+           ;;     (walk val s))
+           )
          u)))
 
 #@((dispatch object LVarDAG)
@@ -263,9 +265,7 @@ TODO: This could use some form of t.c.o.
   (let [v (walk v s)]
     (cond
       [(var? v) (let [n (.format "_.{}" (len s))]
-                  (if (instance? Mapping s)
-                      (.set s v n)
-                      (cons (cons v n) s)))]
+                  (ext-s v n s))]
       [(cons? v)
        (reify-s (cdr v)
                 (reify-s (car v) s))]

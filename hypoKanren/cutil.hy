@@ -225,7 +225,6 @@ Booleans are *not* considered numbers--in this case.
             (.get S.c-store 'numerico)))]
     [True True]))
 
-
 (defn valid-booleano [S]
   "Constraint predicate for `booleano`."
   (cond

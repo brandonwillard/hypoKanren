@@ -22,6 +22,14 @@
                    (unify [1 (var 3)] [1 'blah] test-no-c))
              'blah))
 
+  ;; Test that we can walk an empty list match.
+  (assert (= (walk (var 0) {(var 0) []})
+             []))
+  (assert (= (walk (var 0) (pmap {(var 0) []}))
+             []))
+  (assert (= (walk (var 0) (LVarDAG (pmap {(var 0) []})))
+             []))
+
   ;; Tests for `LVarDAG`'s walk and its cache.
   (setv test-ld (LVarDAG (pmap {(var 0) (var 1)
                                 (var 1) 'a})))
