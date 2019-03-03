@@ -56,7 +56,7 @@ be nested in `cons`es, e.g.
       [True
        (raise (ValueError "Number of arguments must be greater than 2."))]))
   (defn --hash-- [self]
-    (hash [self.car, self.cdr]))
+    (hash [self.car self.cdr]))
   (defn --eq-- [self other]
     (and (= (type self) (type other))
          (= self.car other.car)

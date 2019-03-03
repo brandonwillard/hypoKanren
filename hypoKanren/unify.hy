@@ -207,7 +207,16 @@ out: `None` if terms cannot be unified; otherwise, `s` or, when `u` is an
                 None
                 (unify (cdr u) (cdr v) s)))]
          [(= u v) s]
-         [True None]))))
+         [True
+          ;; The default should always return `None` (i.e. no unification).
+          (unify-post-walk u v s)]))))
+
+
+#@((dispatch object object object)
+   (defn unify-post-walk [u v s]
+     "Unification that occurs *after* parameters `u` and `v` have been walked
+in `s` (and after the standard unification steps)."
+     None))
 
 (defn same-s? [u v s]
   "Do the substitutions `s` change after unifying `u` and `v` under `s`?"
