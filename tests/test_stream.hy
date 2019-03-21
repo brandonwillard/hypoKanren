@@ -52,7 +52,7 @@
 
   (defn sixes [x]
     (disj (== x 6)
-          (Zzz (sizes x))))
+          (Zzz (sixes x))))
 
   (setv fives-and-sixes
         (call/fresh (fn [x] (disj (fives x) (sixes x)))))
